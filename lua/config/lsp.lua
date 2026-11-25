@@ -23,6 +23,11 @@ lsp_zero.set_sign_icons({
     info = "»",
 })
 
+-- Pass nvim-cmp completion capabilities to every server managed by lsp-zero
+lsp_zero.extend_lspconfig({
+    capabilities = require("cmp_nvim_lsp").default_capabilities(),
+})
+
 -- Start Mason (external tool installer) and auto-connect installed language servers
 require("mason").setup()
 require("mason-lspconfig").setup({
@@ -61,6 +66,8 @@ require("mason-lspconfig").setup({
 
             require("lspconfig").clangd.setup({
                 cmd = clangd_cmd,
+                -- Tell clangd that nvim-cmp handles autocompletion
+                capabilities = require("cmp_nvim_lsp").default_capabilities(),
             })
         end,
 

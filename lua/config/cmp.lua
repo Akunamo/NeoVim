@@ -1,5 +1,7 @@
 local cmp = require("cmp")
 local luasnip = require("luasnip")
+require("cmp_nvim_lsp")
+
 
 cmp.setup({
     -- Keep completion active while recording a macro, but pause it during macro playback

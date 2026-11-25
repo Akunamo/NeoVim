@@ -148,10 +148,10 @@ return {
     -- Standalone Java language server launcher (triggered by ftplugin/java.lua)
     { "mfussenegger/nvim-jdtls" },
 
-    -- Autocomplete menu & snippets (loads the moment you enter Insert mode)
+    -- Autocomplete menu & snippets (must load before LSPs attach on buffer open)
     {
         "hrsh7th/nvim-cmp",
-        event = "InsertEnter",
+        lazy = false,
         dependencies = {
             { "hrsh7th/cmp-nvim-lsp" },
             { "hrsh7th/cmp-buffer" },
