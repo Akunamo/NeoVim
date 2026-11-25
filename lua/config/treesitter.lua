@@ -1,3 +1,16 @@
+-- On Windows, tell tree-sitter CLI to compile parsers with GCC instead of Microsoft's cl.exe
+if vim.fn.has("win32") == 1 and not vim.env.CC then
+    local msys_bin = "C:\\msys64\\ucrt64\\bin"
+    local msys_gcc = msys_bin .. "\\gcc.exe"
+
+    if vim.fn.executable("gcc") == 1 then
+        vim.env.CC = "gcc"
+    elseif vim.fn.executable(msys_gcc) == 1 then
+        vim.env.PATH = msys_bin .. ";" .. vim.env.PATH
+        vim.env.CC = msys_gcc
+    end
+end
+
 -- Initialize nvim-treesitter with default install directory
 require("nvim-treesitter").setup()
 
