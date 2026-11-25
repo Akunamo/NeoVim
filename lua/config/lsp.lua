@@ -37,6 +37,19 @@ require("mason-lspconfig").setup({
         -- Skip jdtls here because ftplugin/java.lua launches it with nvim-jdtls instead
         jdtls = function() end,
 
+        -- Tell lua_ls that Neovim's global `vim` variable is valid
+        ["lua_ls"] = function()
+            require("lspconfig").lua_ls.setup({
+                settings = {
+                    Lua = {
+                        diagnostics = {
+                            globals = { "vim" },
+                        },
+                    },
+                },
+            })
+        end,
+
         -- Custom setup for C/C++ (clangd)
         ["clangd"] = function()
             local clangd_cmd = { "clangd" }
