@@ -1,14 +1,11 @@
 local lsp_zero = require("lsp-zero")
 
--- v3.x: Remove lsp.preset(), lsp.set_preferences(), and lsp.setup()
-
--- Set up your keymaps
+-- Buffer-local LSP shortcuts (only active in files where a language server is attached)
 lsp_zero.on_attach(function(client, bufnr)
     local opts = { buffer = bufnr, remap = false }
 
     vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
     vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
-    -- vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end, opts)
     vim.keymap.set("n", "<leader>vd", function() vim.diagnostic.open_float() end, opts)
     vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end, opts)
     vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
@@ -18,41 +15,49 @@ lsp_zero.on_attach(function(client, bufnr)
     vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
 end)
 
--- Optional: configure signs if you want them (replaces lsp.set_preferences)
+-- Icons shown in the left gutter for errors, warnings, hints, and info
 lsp_zero.set_sign_icons({
-    error = '✘',
-    warn = '▲',
-    hint = '⚑',
-    info = '»'
+    error = "✘",
+    warn = "▲",
+    hint = "⚑",
+    info = "»",
 })
 
+-- Start Mason (external tool installer) and auto-connect installed language servers
 require("mason").setup()
 require("mason-lspconfig").setup({
-    ensure_installed = { 
-        'clangd','jdtls', 'ts_ls', 'eslint', 'lua_ls', 
-        'rust_analyzer', 'html', 'angularls', 'emmet_ls',
+    ensure_installed = {
+        "clangd", "jdtls", "ts_ls", "eslint", "lua_ls",
+        "rust_analyzer", "html", "angularls", "emmet_ls",
     },
     handlers = {
-        -- Default handler for installed servers
+        -- Default setup for all servers that don't have a custom handler below
         lsp_zero.default_setup,
-           -- ✅ Add this custom handler for clangd
+
+        -- Skip jdtls here because ftplugin/java.lua launches it with nvim-jdtls instead
         jdtls = function() end,
+
+        -- Custom setup for C/C++ (clangd)
         ["clangd"] = function()
+            local clangd_cmd = { "clangd" }
+
+            -- On Windows, point clangd to the MSYS2 g++ compiler so it finds standard library headers
+            if vim.fn.has("win32") == 1 then
+                table.insert(clangd_cmd, "--query-driver=C:/msys64/ucrt64/bin/g++.exe")
+            end
+
             require("lspconfig").clangd.setup({
-                cmd = {
-                    "clangd",
-                    "--query-driver=C:/msys64/ucrt64/bin/g++.exe",  -- ⚠️ change this!
-                },
+                cmd = clangd_cmd,
             })
         end,
-        
-        -- Custom handler for emmet_ls
+
+        -- Custom setup for Emmet across web and Angular templates
         ["emmet_ls"] = function()
             require("lspconfig").emmet_ls.setup({
                 capabilities = require("cmp_nvim_lsp").default_capabilities(),
                 filetypes = {
-                    "html", "css", "javascript", "javascriptreact", 
-                    "typescriptreact", "vue", "svelte", "blade","htmlangular",
+                    "html", "css", "javascript", "javascriptreact",
+                    "typescriptreact", "vue", "svelte", "blade", "htmlangular",
                 },
                 init_options = {
                     html = {
@@ -66,7 +71,7 @@ require("mason-lspconfig").setup({
     },
 })
 
--- MUST be outside of the setup table
+-- Control how diagnostics (errors/warnings) appear in the editor
 vim.diagnostic.config({
     virtual_text = {
         prefix = "●",
